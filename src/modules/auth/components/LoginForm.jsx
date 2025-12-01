@@ -1,18 +1,21 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import Input from '../../shared/components/Input';
-import Button from '../../shared/components/Button';
-import useAuth from '../hook/useAuth';
-import { frontendErrorMessage } from '../helpers/backendError';
+import { use, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import Input from "../../shared/components/Input";
+import Button from "../../shared/components/Button";
+import useAuth from "../hook/useAuth";
+import { frontendErrorMessage } from "../helpers/backendError";
+import RegisterModal from './RegisterModal';
 
 function LoginForm() {
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ defaultValues: { username: '', password: '' } });
+  } = useForm({ defaultValues: { username: "", password: "" } });
+
+  const [registerOpen, setRegisterOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -28,18 +31,20 @@ function LoginForm() {
         return;
       }
 
-      navigate('/admin/home');
+      navigate("/admin/home");
     } catch (error) {
       if (error?.response?.data?.code) {
         setErrorMessage(frontendErrorMessage[error?.response?.data?.code]);
       } else {
-        setErrorMessage('Llame a soporte');
+        setErrorMessage("Llame a soporte");
       }
     }
   };
 
   return (
-    <form className='
+    <>
+      <form
+        className="
         flex
         flex-col
         gap-20
@@ -49,30 +54,42 @@ function LoginForm() {
         sm:gap-4
         sm:rounded-lg
         sm:shadow-lg
-      '
-    onSubmit={handleSubmit(onValid)}
-    >
-      <Input
-        label='Usuario'
-        { ...register('username', {
-          required: 'Usuario es obligatorio',
-        }) }
-        error={errors.username?.message}
-      />
-      <Input
-        label='Contraseña'
-        { ...register('password', {
-          required: 'Contraseña es obligatorio',
-        }) }
-        type='password'
-        error={errors.password?.message}
-      />
+      "
+        onSubmit={handleSubmit(onValid)}
+      >
+        <Input
+          label="Usuario"
+          {...register("username", {
+            required: "Usuario es obligatorio",
+          })}
+          error={errors.username?.message}
+        />
+        <Input
+          label="Contraseña"
+          {...register("password", {
+            required: "Contraseña es obligatorio",
+          })}
+          type="password"
+          error={errors.password?.message}
+        />
 
-      <Button type='submit'>Iniciar Sesión</Button>
-      <Button variant='secondary' onClick={() => alert('Debe impletar navegacion y pagina de registro')}>Registrar Usuario</Button>
-      {errorMessage && <p className='text-red-500'>{errorMessage}</p>}
-    </form>
+        <Button type="submit">Iniciar Sesión</Button>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => setRegisterOpen(true)}
+        >
+          Registrar Usuario
+        </Button>
+        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+      </form>
+
+      <RegisterModal
+        isOpen={registerOpen}
+        onClose={() => setRegisterOpen(false)}
+      />
+    </>
   );
-};
+}
 
 export default LoginForm;

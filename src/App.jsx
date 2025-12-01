@@ -7,6 +7,7 @@ import ListOrdersPage from './modules/orders/pages/ListOrdersPage';
 import Home from './modules/home/pages/Home';
 import ListProductsPage from './modules/products/pages/ListProductsPage';
 import CreateProductPage from './modules/products/pages/CreateProductPage';
+import RegisterModal from './modules/auth/components/RegisterModal';
 
 function App() {
   const router = createBrowserRouter([
@@ -27,6 +28,12 @@ function App() {
     {
       path: '/login',
       element: <LoginPage />,
+      children: [
+        {
+          path: '/login/register',
+          element: <RegisterModal />,
+        }
+      ],
     },
     {
       path: '/admin',
