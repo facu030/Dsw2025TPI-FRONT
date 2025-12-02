@@ -1,25 +1,51 @@
 import { useEffect, useState } from 'react';
 import Card from '../../shared/components/Card';
+import Button from '../../shared/components/Button';
 import { listOrders } from '../services/listServices';
+
+const STATUS_LABELS = {
+  Pending: 'Pendiente',
+  Completed: 'Completada',
+  Cancelled: 'Cancelada',
+};
 
 function ListOrdersPage() {
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async ({
+    status = statusFilter,
+    searchText = search,
+    pageNumber: pageParam = pageNumber,
+    pageSize: sizeParam = pageSize,
+  } = {}) => {
     try {
       setLoading(true);
-      const { data, error } = await listOrders();
+
+      const { data, error } = await listOrders({
+        status,
+        search: searchText,
+        pageNumber: pageParam,
+        pageSize: sizeParam,
+      });
 
       if (error) throw error;
 
-      setOrders(data);
+      setOrders(data?.orderItems ?? []);
+      setTotal(data?.total ?? 0);
+      setError('');
     } catch (err) {
       console.error(err);
       setError('No se pudieron cargar las órdenes');
+      setOrders([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
@@ -27,106 +53,138 @@ function ListOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, pageNumber, pageSize]);
 
-  // filtro por texto + estado
-  const filteredOrders = orders.filter((order) => {
-    const text = search.toLowerCase().trim();
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-    const matchesSearch =
-      text === '' ||
-      order.id.toLowerCase().includes(text) ||
-      order.customerId.toLowerCase().includes(text) ||
-      order.orderItems.some((item) =>
-        item.productName.toLowerCase().includes(text)
-      );
+  const handleSearch = async () => {
+    setPageNumber(1);
+    await fetchOrders({ searchText: search, pageNumber: 1 });
+  };
 
-    // por ahora todas las órdenes son "pendiente"
-    const orderStatus = 'pendiente';
+  const handleChangePage = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setPageNumber(newPage);
+  };
 
-    const matchesStatus =
-      statusFilter === 'all' || statusFilter === orderStatus;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  if (loading) {
-    return <Card>Cargando órdenes...</Card>;
-  }
+  const handleChangePageSize = (newSize) => {
+    const size = Number(newSize);
+    if (!size) return;
+    setPageSize(size);
+    setPageNumber(1);
+  };
 
   if (error) {
     return <Card>{error}</Card>;
   }
 
   return (
-    <Card>
-      <h1 className="text-3xl mb-4">Órdenes</h1>
+    <div>
+      {/* CARD SUPERIOR: título + buscador + filtro (mismo layout que productos) */}
+      <Card>
+        <div className="flex justify-between items-center mb-3">
+          <h1 className="text-3xl">Órdenes</h1>
+        </div>
 
-      {/* Buscador + filtro de estado */}
-      <div className="flex gap-2 mb-4">
-        <input
-          type="text"
-          placeholder="Buscar"
-          className="flex-1 border rounded px-3 py-2 text-sm"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex items-center gap-3 w-full">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              type="text"
+              placeholder="Buscar"
+              className="text-[1.3rem] w-full"
+            />
+            <Button className="h-11 w-11" onClick={handleSearch}>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z"
+                  stroke="#000000"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Button>
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPageNumber(1);
+            }}
+            className="text-[1.3rem] w-full sm:w-auto"
+          >
+            <option value="all">Estado de Orden</option>
+            <option value="Pending">Pendiente</option>
+            {/* cuando tengas más estados, los agregás acá */}
+          </select>
+        </div>
+      </Card>
+
+      {/* LISTA: cada orden en su propio Card, igual que productos */}
+      <div className="mt-4 flex flex-col gap-4">
+        {loading ? (
+          <span>Buscando datos...</span>
+        ) : orders.length === 0 ? (
+          <span className="text-sm text-gray-500">
+            No se encontraron órdenes.
+          </span>
+        ) : (
+          orders.map((order) => (
+            <Card key={order.id}>
+              <h1>
+                #{order.id.slice(0, 8)} - {order.customerName}
+              </h1>
+              <p className="text-base">
+                Estado:{' '}
+                {STATUS_LABELS[order.status] ?? order.status}
+              </p>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* PAGINACIÓN: misma estructura que en productos */}
+      <div className="flex justify-center items-center mt-3 text-sm sm:text-base">
+        <button
+          disabled={pageNumber === 1}
+          onClick={() => handleChangePage(pageNumber - 1)}
+          className="bg-gray-200 disabled:bg-gray-100 px-2 py-1"
+        >
+          Atras
+        </button>
+
+        <span className="mx-2">
+          {pageNumber} / {totalPages}
+        </span>
 
         <button
-          type="button"
-          className="px-4 rounded bg-purple-500 text-white hover:bg-purple-600 transition"
+          disabled={pageNumber === totalPages}
+          onClick={() => handleChangePage(pageNumber + 1)}
+          className="bg-gray-200 disabled:bg-gray-100 px-2 py-1"
         >
-          <span className="material-symbols-outlined">search</span>
+          Siguiente
         </button>
 
         <select
-          className="border rounded px-3 py-2 text-sm"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          value={pageSize}
+          onChange={(e) => handleChangePageSize(e.target.value)}
+          className="ml-3"
         >
-          <option value="all">Estado de Orden</option>
-          <option value="pendiente">Pendiente</option>
+          <option value="2">2</option>
+          <option value="10">10</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
         </select>
       </div>
-
-      {/* Listado de órdenes */}
-      <div className="flex flex-col gap-3">
-        {filteredOrders.map((order) => (
-          <div
-            key={order.id}
-            className="flex justify-between items-center border rounded-xl px-4 py-3 bg-white shadow-sm"
-          >
-            <div>
-              {/* Línea principal: # - Nombre de Cliente (texto fijo por ahora) */}
-              <div className="font-semibold text-sm">
-                #{order.id.slice(0, 8)} - Nombre de Cliente
-              </div>
-
-              {/* Segunda línea: Estado */}
-              <div className="text-xs text-gray-500 mt-1">
-                Estado: <span className="font-medium">Pendiente</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="px-4 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold"
-              onClick={() => {
-                console.log('Ver orden', order.id);
-              }}
-            >
-              Ver
-            </button>
-          </div>
-        ))}
-
-        {filteredOrders.length === 0 && (
-          <div className="text-sm text-gray-500">
-            No se encontraron órdenes.
-          </div>
-        )}
-      </div>
-    </Card>
+    </div>
   );
 }
 
