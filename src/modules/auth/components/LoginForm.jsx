@@ -19,24 +19,27 @@ function LoginForm() {
 
   const navigate = useNavigate();
 
-  const { singin } = useAuth();
+  const { signin } = useAuth();
 
   const onValid = async (formData) => {
     try {
-      const { error } = await singin(formData.username, formData.password);
-
+      const { error, role } = await signin(formData.username, formData.password);
+  
       if (error) {
         setErrorMessage(error.frontendErrorMessage);
-
         return;
       }
-
-      navigate("/admin/home");
+  
+      if (role === 'Admin') {
+        navigate('/admin/home');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       if (error?.response?.data?.code) {
         setErrorMessage(frontendErrorMessage[error?.response?.data?.code]);
       } else {
-        setErrorMessage("Llame a soporte");
+        setErrorMessage('Llame a soporte');
       }
     }
   };
