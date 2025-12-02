@@ -1,19 +1,28 @@
+// src/modules/orders/services/listServices.js
+import { instance } from '../../shared/api/axiosInstance';
+
 export const listOrders = async () => {
-  const response = await fetch('/api/orders', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-  });
+  try {
+    // El endpoint según Swagger es /api/orders (sin /admin)
+    const response = await instance.get('/api/orders');
 
-  if (response.ok) {
-    const data = await response.json();
+    // Supongo que devuelve una lista de órdenes directamente (array).
+    // Si después ves que devuelve { orders: [], total: X }, lo ajustamos.
+    return { data: response.data, error: null };
+  } catch (error) {
+    // Si el back devuelve 204 No Content -> lo tratamos como lista vacía
+    if (error.response?.status === 204) {
+      return { data: [], error: null };
+    }
 
-    return { data, error: null };
-  } else {
-    const error = await response.json();
-
-    return { data: null, error };
+    return {
+      data: null,
+      error: {
+        frontendErrorMessage:
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          'Error al obtener las órdenes',
+      },
+    };
   }
 };
