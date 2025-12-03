@@ -53,7 +53,7 @@ function StoreLayout() {
       </Button>
       <Button
         className="px-4 py-1 rounded-full bg-neutral-200 text-xs sm:text-sm"
-        onClick={() => navigate("/login")}
+        onClick={() => navigate("/login/register")}
       >
         Registrarse
       </Button>
@@ -85,7 +85,7 @@ function StoreLayout() {
       <Button
         className="w-auto rounded-full bg-purple-200 text-xl font-medium"
         onClick={() => {
-          navigate("/login");
+          navigate("/login/register");
           setOpenMenu(false);
         }}
       >

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getProductByIdClient } from '../services/productsClient';
+import useCart from '../hooks/useCart';
 
 function DetalleItem() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const { cart, addCart } = useCart();
 
   const [product, setProduct] = useState(null);
   const [qty, setQty] = useState(1);
@@ -52,30 +55,23 @@ function DetalleItem() {
       return;
     }
 
-    const raw = localStorage.getItem('cart');
-    const cart = raw ? JSON.parse(raw) : [];
-    const index = cart.findIndex((item) => item.productId === product.id);
-    const currentInCart = index >= 0 ? cart[index].quantity : 0;
+    // cuánto ya hay en el carrito de este producto
+    const existingItem = cart.find(
+      (item) => (item.id ?? item.productId) === product.id
+    );
+    const currentInCart = existingItem ? existingItem.quantity : 0;
     const totalRequested = currentInCart + qty;
 
     if (totalRequested > maxStock) {
-      alert(`No hay stock suficiente. Stock disponible: ${maxStock - currentInCart}`);
+      const disponible = Math.max(maxStock - currentInCart, 0);
+      alert(
+        `No hay stock suficiente. Stock disponible adicional: ${disponible}`
+      );
       return;
     }
 
-    if (index >= 0) {
-      cart[index].quantity = totalRequested;
-    } else {
-      cart.push({
-        productId: product.id,
-        sku: product.sku,
-        name: product.name,
-        unitPrice: product.currentUnitPrice,
-        quantity: qty,
-      });
-    }
-
-    localStorage.setItem('cart', JSON.stringify(cart));
+    // uso el hook
+    addCart(product, qty);
   };
 
   if (loading) return <p className="p-4 text-sm text-neutral-500">Cargando producto...</p>;
@@ -84,12 +80,10 @@ function DetalleItem() {
 
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-sm p-6 flex flex-col md:flex-row gap-6 my-7 py-7">
-      {/* Imagen */}
       <div className="flex-1">
         <div className="w-full aspect-[4/3] bg-neutral-100 rounded-lg mb-3" />
       </div>
 
-      {/* Detalles */}
       <div className="flex-1 flex flex-col gap-3">
         <button
           type="button"

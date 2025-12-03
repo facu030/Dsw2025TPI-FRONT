@@ -8,10 +8,11 @@ import Home from './modules/home/pages/Home';
 import ListProductsPage from './modules/products/pages/ListProductsPage';
 import CreateProductPage from './modules/products/pages/CreateProductPage';
 import RegisterModal from './modules/auth/components/RegisterModal';
-import StorePage from './modules/store/pages/StorePage';
-import CartPage from './modules/store/pages/CartPage';
-import StoreLayout from './modules/store/components/StoreLayout';
-import DetalleItem from './modules/store/components/detalleItem';
+
+import StoreLayout from "./modules/store/components/StoreLayout.jsx";
+import DetalleItem from "./modules/store/components/DetalleItem";
+import StorePage from "./modules/store/pages/StorePage";
+import CartPage from "./modules/store/pages/CartPage";
 
 
 function App() {
@@ -32,6 +33,10 @@ function App() {
           path: 'cart',
           element: <CartPage />,
         },
+        {
+          path: '/',
+          element: <RegisterModal />,
+        },
       ],
     },
     {
@@ -39,7 +44,7 @@ function App() {
       element: <LoginPage />,
       children: [
         {
-          path: '/login/register',
+          path: 'register',
           element: <RegisterModal />,
         }
       ],

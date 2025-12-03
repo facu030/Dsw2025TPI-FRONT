@@ -1,19 +1,17 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ProductCard from "../components/productCard";
 import { getProductsClient } from "../services/productsClient";
 
-
-const PAGE_SIZE = 6;
-
-function ProductsGrid({ search = '' }) {
+function ProductsGrid({ search = "" }) {
   const [products, setProducts] = useState([]);
   const [quantities, setQuantities] = useState({});
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6);    
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const lastPage = Math.max(1, Math.ceil(total / pageSize));
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -23,9 +21,9 @@ function ProductsGrid({ search = '' }) {
 
         const { items, total: totalFromApi } = await getProductsClient({
           page,
-          pageSize: PAGE_SIZE,
+          pageSize,        // 👈 usamos el estado, no constante fija
           search,
-          status: "enabled", // solo productos activos
+          status: "enabled",
         });
 
         setProducts(items);
@@ -39,28 +37,26 @@ function ProductsGrid({ search = '' }) {
     };
 
     fetchProducts();
-  }, [page, search]);
+  }, [page, search, pageSize]); // 👈 si cambia pageSize, recarga
 
-  // 🔹 Cambiar cantidad respetando stock
-  const handleQuantityChange = (product, delta) => {
+  // Cambiar cantidad elegida por producto
+  const cambiarCantidad = (product, delta) => {
     const maxStock = product.stockQuantity ?? 0;
-    if (maxStock <= 0) return; // sin stock, no hago nada
+    if (maxStock <= 0) return;
 
     setQuantities((prev) => {
       const current = prev[product.id] ?? 1;
       let next = current + delta;
 
-      // mínimo 1
       if (next < 1) next = 1;
-      // máximo stock
       if (next > maxStock) next = maxStock;
 
       return { ...prev, [product.id]: next };
     });
   };
 
-  // 🔹 Agregar al carrito respetando stock total
-  const handleAddToCart = (product) => {
+  // Agregar al carrito
+  const agregarCarrito = (product) => {
     const maxStock = product.stockQuantity ?? 0;
     if (maxStock <= 0) {
       alert("Este producto no tiene stock disponible.");
@@ -69,7 +65,6 @@ function ProductsGrid({ search = '' }) {
 
     const qty = quantities[product.id] ?? 1;
 
-    // leer carrito actual
     const raw = localStorage.getItem("cart");
     const cart = raw ? JSON.parse(raw) : [];
 
@@ -79,7 +74,9 @@ function ProductsGrid({ search = '' }) {
 
     if (totalRequested > maxStock) {
       alert(
-        `No hay stock suficiente. Stock disponible: ${maxStock - currentInCart}`
+        `No hay stock suficiente. Stock disponible: ${
+          maxStock - currentInCart
+        }`
       );
       return;
     }
@@ -105,7 +102,9 @@ function ProductsGrid({ search = '' }) {
 
   if (!loading && products.length === 0 && !error) {
     return (
-      <p className="text-sm text-neutral-500">No hay productos para mostrar.</p>
+      <p className="text-sm text-neutral-500">
+        No hay productos para mostrar.
+      </p>
     );
   }
 
@@ -124,9 +123,9 @@ function ProductsGrid({ search = '' }) {
               product={product}
               qty={qty}
               maxStock={maxStock}
-              onDecrease={() => handleQuantityChange(product, -1)}
-              onIncrease={() => handleQuantityChange(product, 1)}
-              onAdd={() => handleAddToCart(product)}
+              onDecrease={() => cambiarCantidad(product, -1)}  // 👈 arreglado
+              onIncrease={() => cambiarCantidad(product, 1)}
+              onAdd={() => agregarCarrito(product)}
             />
           );
         })}
@@ -155,6 +154,21 @@ function ProductsGrid({ search = '' }) {
           >
             Siguiente
           </button>
+
+          {/* 👇 Selector de cantidad por página, igual que en admin */}
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPage(1);                     // cuando cambia, volvemos a página 1
+              setPageSize(Number(e.target.value));
+            }}
+            className="ml-3 text-xs border rounded-full px-2 py-1"
+          >
+            <option value={4}>4</option>
+            <option value={6}>6</option>
+            <option value={8}>8</option>
+            <option value={12}>12</option>
+          </select>
         </div>
       )}
     </div>
