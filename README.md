@@ -1,36 +1,61 @@
-# Unidad 5
+# Electro Hogar  🔌🏠
+### Trabajo Práctico Integrador (TPI) - Desarrollo de Software 2025 
 
-# Configuración
-Se agrego un archivo .env.development
-En este archivo tienes una variable de entorno llamada VITE_BACKEND_URL, debes cambiar su valor de acuerdo a la URL de tu backend.
+Electro Hogar es una aplicación web diseñada para simular el funcionamiento real de una tienda online de electrodomésticos.
 
-# Paginación para productos, nuevo endpoint para listar productos para role ADMIN en BACKEND
+Incluye funcionalidades típicas de un e-commerce moderno:
 
-## Las imagenes están basadas en una versión de un grupo que está cursando
+## Demo 💻
+Mira nuestro proyecto aqui: Próximamente agregamos el link cuando lo publiques
 
-Agregar FilterProduct y ResponsePagination
-![alt text](image.png)
+## 🚀 Tecnologías Utilizadas ⚙️ 🔧
+ Este proyecto fue construido utilizando un stack moderno y robusto:
 
-Agregar lógica en ProductsManagementService para soportar filtrado de status, busqueda por nombre y paginación
-![alt text](image-1.png)
+### 🎨 Frontend (Cliente)
+- React + Vite: Para una interfaz rápida y reactiva.
 
-Crear un nuevo endpoint ("api/products/admin") en PouductController que será utilizado desde el panel del Dashboard
-![alt text](image-2.png)
+- Tailwind CSS: Estilizado moderno y responsivo (Mobile First).
 
-## Pasos de instalación
+- React Router DOM: Manejo de rutas y navegación (protección de rutas Admin/User).
 
-### Ejecutar:
+- React Hook Form: Gestión eficiente de formularios y validaciones.
 
-```npm install```
+- Axios: Comunicación HTTP con el Backend e interceptores para JWT.
 
-### Ejecutar lint
+- LocalStorage: Persistencia del carrito de compras.
 
-```npm run lint```
+### ⚙️ Backend (Servidor)
+- ASP.NET Core Web API: API RESTful robusta.
 
-### Iniciar aplicación
+- Entity Framework Core: ORM para manejo de base de datos.
 
-```npm run dev```
+- SQL Server: Base de datos relacional.
 
-### Crear archivos para producción
+ASP.NET Core Identity: Sistema de autenticación y autorización (JWT).
 
-```npm run build```
+## ✨ Funcionalidades Principales
+### 👤 Usuario (Cliente)
+Catálogo de Productos: Visualización de productos con paginación y filtros por estado.
+
+Buscador: Búsqueda de productos en tiempo real.
+
+Carrito de Compras: Agregar, eliminar ítems y ver resumen de precios (persiste al recargar).
+
+Checkout: Creación de órdenes de compra (requiere inicio de sesión).
+
+Autenticación: Registro e inicio de sesión.
+
+### 🛡️ Administrador
+Dashboard: Acceso exclusivo mediante rutas protegidas.
+
+Gestión de Productos: Alta, modificación y listado de productos.
+
+Gestión de Órdenes: Visualización de todas las órdenes generadas por los usuarios.
+
+## Cloná!
+` git clone (https://github.com/facu030/Dsw2025TPI-FRONT.git)
+
+## Autores 
+- Martinez Rodriguez Facundo
+- Furmanski Lucas
+
