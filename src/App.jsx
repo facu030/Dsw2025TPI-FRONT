@@ -7,26 +7,47 @@ import ListOrdersPage from './modules/orders/pages/ListOrdersPage';
 import Home from './modules/home/pages/Home';
 import ListProductsPage from './modules/products/pages/ListProductsPage';
 import CreateProductPage from './modules/products/pages/CreateProductPage';
+import RegisterModal from './modules/auth/components/RegisterModal';
+
+import StoreLayout from "./modules/store/components/StoreLayout.jsx";
+import DetalleItem from "./modules/store/components/DetalleItem";
+import StorePage from "./modules/store/pages/StorePage";
+import CartPage from "./modules/store/pages/CartPage";
+
 
 function App() {
   const router = createBrowserRouter([
     {
       path: '/',
-      element: <><Outlet /></>,
+      element: <StoreLayout />,
       children: [
         {
-          path: '/',
-          element: <>Listado de productos</>,
+          index: true,              
+          element: <StorePage />,
         },
         {
-          path: '/cart',
-          element: <>Carrito de compras</>,
+          path: 'product/:id',      
+          element: <DetalleItem />,
+        },
+        {
+          path: 'cart',
+          element: <CartPage />,
+        },
+        {
+          path: '/',
+          element: <RegisterModal />,
         },
       ],
     },
     {
       path: '/login',
       element: <LoginPage />,
+      children: [
+        {
+          path: 'register',
+          element: <RegisterModal />,
+        }
+      ],
     },
     {
       path: '/admin',

@@ -1,45 +1,60 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import Input from '../../shared/components/Input';
-import Button from '../../shared/components/Button';
-import useAuth from '../hook/useAuth';
-import { frontendErrorMessage } from '../helpers/backendError';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import Input from "../../shared/components/Input";
+import Button from "../../shared/components/Button";
+import useAuth from "../hook/useAuth";
+import { frontendErrorMessage } from "../helpers/backendError";
+import RegisterModal from "./RegisterModal";
 
 function LoginForm() {
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ defaultValues: { username: '', password: '' } });
+  } = useForm({ defaultValues: { username: "", password: "" } });
+
+  const [registerOpen, setRegisterOpen] = useState(false);
 
   const navigate = useNavigate();
-
-  const { singin } = useAuth();
+  const { signin } = useAuth();
 
   const onValid = async (formData) => {
     try {
-      const { error } = await singin(formData.username, formData.password);
+      const { error, role } = await signin(
+        formData.username,
+        formData.password
+      );
 
       if (error) {
         setErrorMessage(error.frontendErrorMessage);
-
         return;
       }
 
-      navigate('/admin/home');
+      if (role === "Admin") {
+        navigate("/admin/home");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       if (error?.response?.data?.code) {
         setErrorMessage(frontendErrorMessage[error?.response?.data?.code]);
       } else {
-        setErrorMessage('Llame a soporte');
+        setErrorMessage("Llame a soporte");
       }
     }
   };
 
+  const cerrarLogin = () => {
+    navigate("/");
+  };
+
   return (
-    <form className='
+    <div>
+      <form
+        className="
+        relative 
         flex
         flex-col
         gap-20
@@ -49,30 +64,61 @@ function LoginForm() {
         sm:gap-4
         sm:rounded-lg
         sm:shadow-lg
-      '
-    onSubmit={handleSubmit(onValid)}
-    >
-      <Input
-        label='Usuario'
-        { ...register('username', {
-          required: 'Usuario es obligatorio',
-        }) }
-        error={errors.username?.message}
-      />
-      <Input
-        label='Contraseña'
-        { ...register('password', {
-          required: 'Contraseña es obligatorio',
-        }) }
-        type='password'
-        error={errors.password?.message}
-      />
+      "
+        onSubmit={handleSubmit(onValid)}
+      >
+        <button
+          type="button"
+          onClick={cerrarLogin}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-xl"
+          aria-label="Cerrar y volver al catálogo"
+        >
+          ✕
+        </button>
 
-      <Button type='submit'>Iniciar Sesión</Button>
-      <Button variant='secondary' onClick={() => alert('Debe impletar navegacion y pagina de registro')}>Registrar Usuario</Button>
-      {errorMessage && <p className='text-red-500'>{errorMessage}</p>}
-    </form>
+        <Input
+          label="Usuario"
+          {...register("username", {
+            required: "Usuario es obligatorio",
+            pattern: {
+              value: /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+$/,
+              message: "El usuario solo puede contener letras",
+            },
+          })}
+          error={errors.username?.message}
+        />
+        <Input
+          label="Contraseña"
+          type="password"
+          {...register("password", {
+            required: "Contraseña es obligatoria",
+            pattern: {
+              value:
+                /^(?=(?:.*\d){2,})(?=.*[A-Z])(?=.*[^A-Za-z0-9])(?=.{8,}).*$/,
+              message:
+                "Mínimo 8 caracteres, 1 mayúscula, 2 números y 1 carácter especial",
+            },
+          })}
+          error={errors.password?.message}
+        />
+
+        <Button type="submit">Iniciar Sesión</Button>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => setRegisterOpen(true)}
+        >
+          Registrar Usuario
+        </Button>
+        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+      </form>
+
+      <RegisterModal
+        isOpen={registerOpen}
+        onClose={() => setRegisterOpen(false)}
+      />
+    </div>
   );
-};
+}
 
 export default LoginForm;

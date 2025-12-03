@@ -2,19 +2,19 @@ import { instance } from '../../shared/api/axiosInstance';
 
 export const login = async (username, password) => {
   try {
-    // mejor con / delante, pero 'api/...' también funciona
-    const response = await instance.post('/api/auth/login', {
-      username,      // mismo nombre que en Swagger
-      password,
-    });
+    const response = await instance.post('/api/auth/login', { username, password });
 
-    // tu backend devuelve { token, user }
+    // El back devuelve
+    const { token, user, role } = response.data;
+
     return {
-      data: response.data.token,   // devolvemos SOLO el token
+      data: { token, user, role },
       error: null,
     };
   } catch (error) {
-    // formato típico de error en tu back: { error: "...", status: 400, type: "..." }
+    console.log('LOGIN ERROR RAW:', error);
+    console.log('LOGIN ERROR DATA:', error.response?.data);
+
     const backendMessage =
       error.response?.data?.error ||
       error.response?.data?.message ||
