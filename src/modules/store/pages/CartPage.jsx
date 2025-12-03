@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import useCart from '../hooks/useCart';
 import useAuth from '../../auth/hook/useAuth';
+import { instance } from '../../shared/api/axiosInstance'; // 👈 IMPORTANTE
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -15,6 +17,8 @@ const CartPage = () => {
     totalItems,
   } = useCart();
 
+  const [saving, setSaving] = useState(false); // 👈 para deshabilitar mientras guarda
+
   const formatCurrency = (value) =>
     value.toLocaleString('es-AR', {
       style: 'currency',
@@ -22,22 +26,46 @@ const CartPage = () => {
       minimumFractionDigits: 2,
     });
 
-  const finalizarCompra = () => {
-    if (!cart.length) return;
+  const finalizarCompra = async () => {
+    if (!cart.length || saving) return;
 
     if (!isAuthenticated) {
-      //  Usuario no logueado
-      // redirige a / login
+      // Usuario no logueado → mandar a login
       navigate('/login');
       return;
     }
 
-    // solo usuario logueados
-    // envian a /api/orders
-    console.log('Enviar a /api/orders', cart);
+    // Armar el body que espera POST /api/orders/me
+    const orderRequest = {
+      // por ahora hardcodeado; después lo podés reemplazar por un form
+      shippingAddress: 'Dirección de envío demo',
+      billingAddress: 'Dirección de facturación demo',
+      orderItems: cart.map((item) => ({
+        productId: item.id ?? item.productId,
+        quantity: item.quantity,
+        unitPrice: item.currentUnitPrice ?? item.unitPrice ?? 0,
+      })),
+    };
 
-    clearCart();
-    navigate('/');
+    try {
+      setSaving(true);
+
+      // Llamada al endpoint nuevo que usa el usuario del token
+      const response = await instance.post('/api/orders/me', orderRequest);
+      console.log('Orden creada:', response.data);
+
+      // Si todo salió bien, limpiamos carrito
+      clearCart();
+
+      // Podés mandarlo al home o al listado de órdenes
+      // navigate('/orders'); // si tenés ruta de órdenes
+      navigate('/');
+    } catch (error) {
+      console.error('Error al finalizar compra', error);
+      alert('No se pudo completar la compra. Intentalo de nuevo.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const botonBack = () => {
@@ -75,7 +103,9 @@ const CartPage = () => {
                   className="bg-white rounded-xl shadow-sm p-4 flex flex-col sm:flex-row justify-between gap-4"
                 >
                   <div>
-                    <p className="text-sm sm:text-md font-semibold">{item.name}</p>
+                    <p className="text-sm sm:text-md font-semibold">
+                      {item.name}
+                    </p>
                     <p className="text-xs text-neutral-500 mt-1">
                       Cantidad de productos: {item.quantity}
                       <br />
@@ -122,7 +152,9 @@ const CartPage = () => {
         </div>
 
         <aside className="bg-white rounded-xl shadow-sm p-4 h-full flex flex-col">
-          <h2 className="sm:text-xl text-sm font-semibold mb-3">Detalle de pedido</h2>
+          <h2 className="sm:text-xl text-sm font-semibold mb-3">
+            Detalle de pedido
+          </h2>
 
           <div className="text-xs text-neutral-600 space-y-1 mb-4 flex-1">
             <p>
@@ -140,12 +172,16 @@ const CartPage = () => {
           <button
             type="button"
             onClick={finalizarCompra}
-            disabled={!cart.length}
+            disabled={!cart.length || saving}
             className={`
               w-full text-xs font-semibold px-4 py-2 rounded-full 
-              ${cart.length? 'bg-purple-200 hover:bg-purple-300': 'bg-neutral-200 text-neutral-400 cursor-not-allowed'}`}
+              ${
+                cart.length && !saving
+                  ? 'bg-purple-200 hover:bg-purple-300'
+                  : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
+              }`}
           >
-            Finalizar Compra
+            {saving ? 'Procesando...' : 'Finalizar Compra'}
           </button>
         </aside>
       </div>
