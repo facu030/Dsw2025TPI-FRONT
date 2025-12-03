@@ -6,44 +6,47 @@ import { listOrders } from '../services/listServices';
 const STATUS_LABELS = {
   Pending: 'Pendiente',
   Completed: 'Completada',
-  Cancelled: 'Cancelada',
+  Canceled: 'Cancelada',
 };
 
 function ListOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const fetchOrders = async ({
-    status = statusFilter,
-    searchText = search,
-    pageNumber: pageParam = pageNumber,
-    pageSize: sizeParam = pageSize,
-  } = {}) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const fetchOrders = async () => {
     try {
       setLoading(true);
+      setError('');
 
-      const { data, error } = await listOrders({
-        status,
-        search: searchText,
-        pageNumber: pageParam,
-        pageSize: sizeParam,
+      console.log('Fetching orders with (solo back):', {
+        search,
+        pageNumber,
+        pageSize,
       });
 
-      if (error) throw error;
+      // status ya no se usa en el back
+      const { data, error: apiError } = await listOrders(
+        search,
+        statusFilter,
+        pageNumber,
+        pageSize
+      );
+
+      if (apiError) throw apiError;
 
       setOrders(data?.orderItems ?? []);
       setTotal(data?.total ?? 0);
-      setError('');
     } catch (err) {
-      console.error(err);
-      setError('No se pudieron cargar las órdenes');
+      console.error('Error al cargar órdenes:', err);
+      setError('No se pudieron cargar las órdenes. Revisa la consola para más detalles.');
       setOrders([]);
       setTotal(0);
     } finally {
@@ -51,16 +54,33 @@ function ListOrdersPage() {
     }
   };
 
+  // Carga inicial + recarga cuando cambian paginación
+  // (PERO NO cuando cambia el texto de búsqueda ni el estado)
   useEffect(() => {
     fetchOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, pageNumber, pageSize]);
+  }, [pageNumber, pageSize]);
+
+  // Filtro por estado SOLO EN EL FRONT
+  const filteredOrders =
+    statusFilter === 'all'
+      ? orders
+      : orders.filter((o) => o.status === statusFilter);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  // El botón Buscar (y Enter) usan el search actual
   const handleSearch = async () => {
-    setPageNumber(1);
-    await fetchOrders({ searchText: search, pageNumber: 1 });
+    if (pageNumber !== 1) {
+      setPageNumber(1);
+    }
+    await fetchOrders();
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   };
 
   const handleChangePage = (newPage) => {
@@ -76,12 +96,16 @@ function ListOrdersPage() {
   };
 
   if (error) {
-    return <Card>{error}</Card>;
+    return (
+      <Card>
+        <div className="text-red-500 mb-4">{error}</div>
+        <Button onClick={fetchOrders}>Reintentar</Button>
+      </Card>
+    );
   }
 
   return (
     <div>
-      {/* CARD SUPERIOR: título + buscador + filtro (mismo layout que productos) */}
       <Card>
         <div className="flex justify-between items-center mb-3">
           <h1 className="text-3xl">Órdenes</h1>
@@ -92,15 +116,21 @@ function ListOrdersPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={handleKeyDown}
               type="text"
-              placeholder="Buscar"
-              className="text-[1.3rem] w-full"
+              placeholder="Buscar por cliente o ID..."
+              className="text-[1.3rem] w-full border p-2 rounded"
             />
-            <Button className="h-11 w-11" onClick={handleSearch}>
+            <Button
+              className="h-11 w-11 flex justify-center items-center"
+              onClick={handleSearch}
+            >
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
               >
                 <path
                   d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z"
@@ -119,71 +149,73 @@ function ListOrdersPage() {
               setStatusFilter(e.target.value);
               setPageNumber(1);
             }}
-            className="text-[1.3rem] w-full sm:w-auto"
+            className="text-[1.3rem] w-full sm:w-auto border p-2 rounded"
           >
-            <option value="all">Estado de Orden</option>
+            <option value="all">Todos los estados</option>
             <option value="Pending">Pendiente</option>
-            {/* cuando tengas más estados, los agregás acá */}
+            <option value="Completed">Completada</option>
+            <option value="Canceled">Cancelada</option>
           </select>
         </div>
       </Card>
 
-      {/* LISTA: cada orden en su propio Card, igual que productos */}
       <div className="mt-4 flex flex-col gap-4">
         {loading ? (
-          <span>Buscando datos...</span>
-        ) : orders.length === 0 ? (
-          <span className="text-sm text-gray-500">
-            No se encontraron órdenes.
-          </span>
+          <div className="text-center p-4">Cargando órdenes...</div>
+        ) : filteredOrders.length === 0 ? (
+          <Card>
+            <p className="text-center text-gray-500">
+              No se encontraron órdenes con esos criterios.
+            </p>
+          </Card>
         ) : (
-          orders.map((order) => (
+          filteredOrders.map((order) => (
             <Card key={order.id}>
               <h1>
                 #{order.id.slice(0, 8)} - {order.customerName}
               </h1>
               <p className="text-base">
-                Estado:{' '}
-                {STATUS_LABELS[order.status] ?? order.status}
+                Estado: {STATUS_LABELS[order.status] ?? order.status}
               </p>
             </Card>
           ))
         )}
       </div>
 
-      {/* PAGINACIÓN: misma estructura que en productos */}
-      <div className="flex justify-center items-center mt-3 text-sm sm:text-base">
-        <button
-          disabled={pageNumber === 1}
-          onClick={() => handleChangePage(pageNumber - 1)}
-          className="bg-gray-200 disabled:bg-gray-100 px-2 py-1"
-        >
-          Atras
-        </button>
+      {filteredOrders.length > 0 && (
+        <div className="flex justify-center items-center mt-3 text-sm sm:text-base">
+          <button
+            disabled={pageNumber === 1}
+            onClick={() => handleChangePage(pageNumber - 1)}
+            className="bg-gray-200 disabled:bg-gray-100 px-3 py-1 rounded mx-1"
+          >
+            Atrás
+          </button>
 
-        <span className="mx-2">
-          {pageNumber} / {totalPages}
-        </span>
+          <span className="mx-2 font-bold">
+            {pageNumber} / {totalPages}
+          </span>
 
-        <button
-          disabled={pageNumber === totalPages}
-          onClick={() => handleChangePage(pageNumber + 1)}
-          className="bg-gray-200 disabled:bg-gray-100 px-2 py-1"
-        >
-          Siguiente
-        </button>
+          <button
+            disabled={pageNumber === totalPages}
+            onClick={() => handleChangePage(pageNumber + 1)}
+            className="bg-gray-200 disabled:bg-gray-100 px-3 py-1 rounded mx-1"
+          >
+            Siguiente
+          </button>
 
-        <select
-          value={pageSize}
-          onChange={(e) => handleChangePageSize(e.target.value)}
-          className="ml-3"
-        >
-          <option value="2">2</option>
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="20">20</option>
-        </select>
-      </div>
+          <select
+            value={pageSize}
+            onChange={(e) => handleChangePageSize(e.target.value)}
+            className="ml-3 border p-1 rounded"
+          >
+            <option value="2">2 por pág</option>
+            <option value="10">10 por pág</option>
+            <option value="15">15 por pág</option>
+            <option value="20">20 por pág</option>
+          </select>
+        </div>
+      )}
     </div>
   );
 }

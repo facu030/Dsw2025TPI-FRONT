@@ -1,42 +1,31 @@
-// src/modules/orders/services/listServices.js
+// src/orders/services/listServices.js
 import { instance } from '../../shared/api/axiosInstance';
 
-export const listOrders = async ({
-  status = 'all',
+export const listOrders = async (
   search = '',
+  status = 'all',   // lo dejamos en la firma, pero NO lo usamos
   pageNumber = 1,
-  pageSize = 10,
-} = {}) => {
-  try {
-    // Ahora usamos el endpoint liviano para el dashboard
-    const response = await instance.get('/api/orders/admin', {
-      params: {
-        status,
-        search,
-        pageNumber,
-        pageSize,
-      },
-    });
+  pageSize = 10
+) => {
+  // armamos un objeto solo con los params válidos
+  const params = {
+    pageNumber,
+    pageSize,
+  };
 
-    // El back devuelve: { orderItems: [...], total: X }
-    return { data: response.data, error: null };
-  } catch (error) {
-    // Si el back devuelve 204 No Content -> lo tratamos como lista vacía
-    if (error.response?.status === 204) {
-      return {
-        data: { orderItems: [], total: 0 },
-        error: null,
-      };
-    }
-
-    return {
-      data: null,
-      error: {
-        frontendErrorMessage:
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Error al obtener las órdenes',
-      },
-    };
+  // solo mandamos search si tiene algo
+  if (search && search.trim() !== '') {
+    params.search = search.trim();
   }
+
+  // 👇 YA NO MANDAMOS STATUS AL BACKEND
+  // if (status && status !== 'all') {
+  //   params.status = status;
+  // }
+
+  const queryString = new URLSearchParams(params).toString();
+
+  const response = await instance.get(`/api/orders/admin?${queryString}`);
+
+  return { data: response.data, error: null };
 };
