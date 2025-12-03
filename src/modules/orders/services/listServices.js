@@ -1,19 +1,31 @@
-export const listOrders = async () => {
-  const response = await fetch('/api/orders', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    },
-  });
+// src/orders/services/listServices.js
+import { instance } from '../../shared/api/axiosInstance';
 
-  if (response.ok) {
-    const data = await response.json();
+export const listOrders = async (
+  search = '',
+  status = 'all',   // lo dejamos en la firma, pero NO lo usamos
+  pageNumber = 1,
+  pageSize = 10
+) => {
+  // armamos un objeto solo con los params válidos
+  const params = {
+    pageNumber,
+    pageSize,
+  };
 
-    return { data, error: null };
-  } else {
-    const error = await response.json();
-
-    return { data: null, error };
+  // solo mandamos search si tiene algo
+  if (search && search.trim() !== '') {
+    params.search = search.trim();
   }
+
+  // 👇 YA NO MANDAMOS STATUS AL BACKEND
+  // if (status && status !== 'all') {
+  //   params.status = status;
+  // }
+
+  const queryString = new URLSearchParams(params).toString();
+
+  const response = await instance.get(`/api/orders/admin?${queryString}`);
+
+  return { data: response.data, error: null };
 };

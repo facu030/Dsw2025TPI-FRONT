@@ -15,9 +15,16 @@ export const login = async (username, password) => {
     console.log('LOGIN ERROR RAW:', error);
     console.log('LOGIN ERROR DATA:', error.response?.data);
 
+    const backendMessage =
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      'Usuario y/o contraseña no son correctos';
+
     return {
       data: null,
-      error,
+      error: {
+        frontendErrorMessage: backendMessage,
+      },
     };
   }
 };
