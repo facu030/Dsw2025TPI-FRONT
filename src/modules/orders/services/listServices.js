@@ -1,13 +1,16 @@
 // src/orders/services/listServices.js
 import { instance } from '../../shared/api/axiosInstance';
 
+/**
+ * Obtiene listado paginado de órdenes para el dashboard admin.
+ * Llama a GET /api/orders/admin
+ */
 export const listOrders = async (
   search = '',
-  status = 'all',   // lo dejamos en la firma, pero NO lo usamos
+  status = 'all',   // lo dejamos en la firma por si en el futuro lo usamos
   pageNumber = 1,
   pageSize = 10
 ) => {
-  // armamos un objeto solo con los params válidos
   const params = {
     pageNumber,
     pageSize,
@@ -18,7 +21,7 @@ export const listOrders = async (
     params.search = search.trim();
   }
 
-  // 👇 YA NO MANDAMOS STATUS AL BACKEND
+  // 👇 status ya no se usa en el back:
   // if (status && status !== 'all') {
   //   params.status = status;
   // }
@@ -27,5 +30,14 @@ export const listOrders = async (
 
   const response = await instance.get(`/api/orders/admin?${queryString}`);
 
+  return { data: response.data, error: null };
+};
+
+/**
+ * Obtiene el detalle completo de una orden por Id.
+ * Llama a GET /api/orders/{id}
+ */
+export const getOrderById = async (id) => {
+  const response = await instance.get(`/api/orders/${id}`);
   return { data: response.data, error: null };
 };

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';   // 👈 IMPORTANTE
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 import { listOrders } from '../services/listServices';
@@ -10,6 +11,8 @@ const STATUS_LABELS = {
 };
 
 function ListOrdersPage() {
+  const navigate = useNavigate();                // 👈 para ir al detalle
+
   const [orders, setOrders] = useState([]);
   const [total, setTotal] = useState(0);
 
@@ -32,7 +35,6 @@ function ListOrdersPage() {
         pageSize,
       });
 
-      // status ya no se usa en el back
       const { data, error: apiError } = await listOrders(
         search,
         statusFilter,
@@ -54,14 +56,11 @@ function ListOrdersPage() {
     }
   };
 
-  // Carga inicial + recarga cuando cambian paginación
-  // (PERO NO cuando cambia el texto de búsqueda ni el estado)
   useEffect(() => {
     fetchOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageNumber, pageSize]);
 
-  // Filtro por estado SOLO EN EL FRONT
   const filteredOrders =
     statusFilter === 'all'
       ? orders
@@ -69,7 +68,6 @@ function ListOrdersPage() {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  // El botón Buscar (y Enter) usan el search actual
   const handleSearch = async () => {
     if (pageNumber !== 1) {
       setPageNumber(1);
@@ -170,13 +168,25 @@ function ListOrdersPage() {
           </Card>
         ) : (
           filteredOrders.map((order) => (
-            <Card key={order.id}>
-              <h1>
-                #{order.id.slice(0, 8)} - {order.customerName}
-              </h1>
-              <p className="text-base">
-                Estado: {STATUS_LABELS[order.status] ?? order.status}
-              </p>
+            <Card
+              key={order.id}
+              className="flex items-center justify-between"
+            >
+              <div>
+                <h1>
+                  #{order.id.slice(0, 8)} - {order.customerName}
+                </h1>
+                <p className="text-base">
+                  Estado: {STATUS_LABELS[order.status] ?? order.status}
+                </p>
+              </div>
+
+              <Button
+                className="px-4 py-2 rounded-full"
+                onClick={() => navigate(`/admin/orders/${order.id}`)}  // 👈 botón Ver
+              >
+                Ver
+              </Button>
             </Card>
           ))
         )}

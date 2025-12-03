@@ -1,54 +1,59 @@
-import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './modules/auth/context/AuthProvider';
+
 import LoginPage from './modules/auth/pages/LoginPage';
-import Dashboard from './modules/templates/components/Dashboard';
+import RegisterModal from './modules/auth/components/RegisterModal';
+
 import ProtectedRoute from './modules/auth/components/ProtectedRoute';
-import ListOrdersPage from './modules/orders/pages/ListOrdersPage';
+import Dashboard from './modules/templates/components/Dashboard';
+
 import Home from './modules/home/pages/Home';
 import ListProductsPage from './modules/products/pages/ListProductsPage';
 import CreateProductPage from './modules/products/pages/CreateProductPage';
-import RegisterModal from './modules/auth/components/RegisterModal';
 
-import StoreLayout from "./modules/store/components/StoreLayout.jsx";
-import DetalleItem from "./modules/store/components/DetalleItem";
-import StorePage from "./modules/store/pages/StorePage";
-import CartPage from "./modules/store/pages/CartPage";
+import ListOrdersPage from './modules/orders/pages/ListOrdersPage';
+import OrderDetailPage from './modules/orders/pages/OrderDetailPage';
 
+import StoreLayout from './modules/store/components/StoreLayout.jsx';
+import DetalleItem from './modules/store/components/DetalleItem';
+import StorePage from './modules/store/pages/StorePage';
+import CartPage from './modules/store/pages/CartPage';
 
 function App() {
   const router = createBrowserRouter([
+    // ================== TIENDA ==================
     {
       path: '/',
       element: <StoreLayout />,
       children: [
         {
-          index: true,              
+          index: true,
           element: <StorePage />,
         },
         {
-          path: 'product/:id',      
+          path: 'product/:id',
           element: <DetalleItem />,
         },
         {
           path: 'cart',
           element: <CartPage />,
         },
-        {
-          path: '/',
-          element: <RegisterModal />,
-        },
       ],
     },
+
+    // ================== AUTH ==================
     {
       path: '/login',
       element: <LoginPage />,
       children: [
         {
-          path: 'register',
+          path: 'register',      // /login/register
           element: <RegisterModal />,
-        }
+        },
       ],
     },
+
+    // ================== ADMIN ==================
     {
       path: '/admin',
       element: (
@@ -58,20 +63,24 @@ function App() {
       ),
       children: [
         {
-          path: '/admin/home',
+          path: 'home',          // /admin/home
           element: <Home />,
         },
         {
-          path: '/admin/products',
+          path: 'products',      // /admin/products
           element: <ListProductsPage />,
         },
         {
-          path: '/admin/products/create',
+          path: 'products/create', // /admin/products/create
           element: <CreateProductPage />,
         },
         {
-          path: '/admin/orders',
+          path: 'orders',        // /admin/orders  (listado)
           element: <ListOrdersPage />,
+        },
+        {
+          path: 'orders/:id',    // /admin/orders/:id  (detalle)
+          element: <OrderDetailPage />,
         },
       ],
     },
