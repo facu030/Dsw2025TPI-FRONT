@@ -1,4 +1,3 @@
-// src/modules/orders/pages/OrderDetailPage.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';

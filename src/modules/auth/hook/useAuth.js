@@ -5,7 +5,7 @@ function useAuth() {
   const role = localStorage.getItem('role');
   const isAuthenticated = !!token;
 
-  // --- LOGIN ---
+  // login
   const signin = async (username, password) => {
     try {
       const { data } = await instance.post('/api/auth/login', {
@@ -13,10 +13,10 @@ function useAuth() {
         password,
       });
 
-      // 1 Desestructuramos solo token y user (porque role viene dentro de user)
+      // desestructuramos solo token y use
       const { token, user } = data; 
       
-      // 2 Sacamos el role de adentro del objeto user
+      // sacamos el role de adentro del objeto user
       const role = user.role; 
 
       localStorage.setItem('token', token);
@@ -39,7 +39,7 @@ function useAuth() {
     }
   };
 
-  // --- SIGNUP ---
+  // signup
   const signup = async (username, email, password) => {
     try {
       const { data } = await instance.post('/api/auth/register', {
@@ -48,10 +48,9 @@ function useAuth() {
         password,
       });
 
-      // 1 Igual que en login, el rol viene adentro de user
+   
       const { token, user } = data;
       
-      // 2 sacamos el rol correctamente
       const role = user.role;
 
       localStorage.setItem('token', token);
@@ -74,7 +73,7 @@ function useAuth() {
     }
   };
   
- // --- SIGNOUT ---
+ // signout
   const signout = (redirectTo = '/') => {
     localStorage.clear();
     window.location.href = redirectTo;

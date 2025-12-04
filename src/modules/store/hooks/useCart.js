@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 
 const useCart = () => {
-  // inicializa estado leyendo del local key 'cart'
+  // inicializa estado leyendo del local 
   const [cart, setCart] = useState(() => {
     const storedCart = localStorage.getItem('cart');
     return storedCart ? JSON.parse(storedCart) : [];
   });
 
-  // sincronizar con localStorage cada vez que cambie el estado del carro
+  // sincronizar con local cada vez que cambie el estado del carro
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  // para obtener el id de un item id o productid
+  // para obtener el id de un item
   const getItemId = (itemOrProduct) =>
     itemOrProduct.id ?? itemOrProduct.productId;
 
@@ -43,7 +43,6 @@ const useCart = () => {
         );
       }
 
-      // si no existe con los datos de entiti product
       const newItem = {
         id: productId,
         sku: product.sku,
@@ -56,7 +55,7 @@ const useCart = () => {
     });
   };
 
-  // actualizar cantidad (+1 / -1, etc.)
+  // actualizar cantidad
   const updateQuantity = (productId, delta) => {
     setCart((prevCart) =>
       prevCart
@@ -65,7 +64,7 @@ const useCart = () => {
           if (id !== productId) return item;
 
           const newQty = item.quantity + delta;
-          // si baja de 1, lo "sacamos" del carrito
+          
           if (newQty <= 0) return null;
 
           return { ...item, quantity: newQty };
@@ -81,7 +80,7 @@ const useCart = () => {
     setCart((prevCart) => prevCart.filter((item) => getItemId(item) !== productId));
   };
 
-  // 6. Limpiar todo el carrito
+  // limpiar todo el carrito
   const clearCart = () => {
     setCart([]);
     localStorage.removeItem('cart');

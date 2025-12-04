@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import useCart from '../hooks/useCart';
 import useAuth from '../../auth/hook/useAuth';
-import { instance } from '../../shared/api/axiosInstance'; // 👈 IMPORTANTE
+import { instance } from '../../shared/api/axiosInstance'; 
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ const CartPage = () => {
     totalItems,
   } = useCart();
 
-  const [saving, setSaving] = useState(false); // 👈 para deshabilitar mientras guarda
+  const [saving, setSaving] = useState(false); 
 
   const formatCurrency = (value) =>
     value.toLocaleString('es-AR', {
@@ -30,14 +30,12 @@ const CartPage = () => {
     if (!cart.length || saving) return;
 
     if (!isAuthenticated) {
-      // Usuario no logueado → mandar a login
       navigate('/login');
       return;
     }
 
-    // Armar el body que espera POST /api/orders/me
     const orderRequest = {
-      // por ahora hardcodeado; después lo podés reemplazar por un form
+
       shippingAddress: 'Dirección de envío demo',
       billingAddress: 'Dirección de facturación demo',
       orderItems: cart.map((item) => ({
@@ -50,15 +48,11 @@ const CartPage = () => {
     try {
       setSaving(true);
 
-      // Llamada al endpoint nuevo que usa el usuario del token
       const response = await instance.post('/api/orders/me', orderRequest);
       console.log('Orden creada:', response.data);
 
-      // Si todo salió bien, limpiamos carrito
       clearCart();
 
-      // Podés mandarlo al home o al listado de órdenes
-      // navigate('/orders'); // si tenés ruta de órdenes
       navigate('/');
     } catch (error) {
       console.error('Error al finalizar compra', error);

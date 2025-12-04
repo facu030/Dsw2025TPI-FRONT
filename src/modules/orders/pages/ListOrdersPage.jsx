@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';   // 👈 IMPORTANTE
+import { useNavigate } from 'react-router-dom'; 
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 import { listOrders } from '../services/listServices';
@@ -11,7 +11,7 @@ const STATUS_LABELS = {
 };
 
 function ListOrdersPage() {
-  const navigate = useNavigate();                // 👈 para ir al detalle
+  const navigate = useNavigate();               
 
   const [orders, setOrders] = useState([]);
   const [total, setTotal] = useState(0);
@@ -58,7 +58,6 @@ function ListOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageNumber, pageSize]);
 
   const filteredOrders =
@@ -183,7 +182,7 @@ function ListOrdersPage() {
 
               <Button
                 className="px-4 py-2 rounded-full"
-                onClick={() => navigate(`/admin/orders/${order.id}`)}  // 👈 botón Ver
+                onClick={() => navigate(`/admin/orders/${order.id}`)}
               >
                 Ver
               </Button>

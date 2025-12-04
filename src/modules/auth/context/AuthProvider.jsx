@@ -36,7 +36,6 @@ function AuthProvider({ children }) {
       return { error };
     }
 
-    //back te devolviera token acá podrías:
     localStorage.setItem("token", data);
     setIsAuthenticated(true);
 

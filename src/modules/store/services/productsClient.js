@@ -26,7 +26,5 @@ export const getProductsClient = async ({
 
 export const getProductByIdClient = async (id) => {
   const { data } = await instance.get(`api/products/${id}`);
-  // data es ProductResponse del back:
-  // { id, sku, internalCode, name, description, currentUnitPrice, stockQuantity, isActive }
   return data;
 };
