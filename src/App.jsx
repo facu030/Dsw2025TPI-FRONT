@@ -21,7 +21,7 @@ import CartPage from './modules/store/pages/CartPage';
 
 function App() {
   const router = createBrowserRouter([
-    // ================== TIENDA ==================
+
     {
       path: '/',
       element: <StoreLayout />,
@@ -41,19 +41,17 @@ function App() {
       ],
     },
 
-    // ================== AUTH ==================
     {
       path: '/login',
       element: <LoginPage />,
       children: [
         {
-          path: 'register',      // /login/register
+          path: 'register',     
           element: <RegisterModal />,
         },
       ],
     },
 
-    // ================== ADMIN ==================
     {
       path: '/admin',
       element: (
@@ -63,23 +61,23 @@ function App() {
       ),
       children: [
         {
-          path: 'home',          // /admin/home
+          path: 'home',          
           element: <Home />,
         },
         {
-          path: 'products',      // /admin/products
+          path: 'products',      
           element: <ListProductsPage />,
         },
         {
-          path: 'products/create', // /admin/products/create
+          path: 'products/create',
           element: <CreateProductPage />,
         },
         {
-          path: 'orders',        // /admin/orders  (listado)
+          path: 'orders',        
           element: <ListOrdersPage />,
         },
         {
-          path: 'orders/:id',    // /admin/orders/:id  (detalle)
+          path: 'orders/:id',   
           element: <OrderDetailPage />,
         },
       ],
