@@ -17,7 +17,6 @@ function ProductCard({ product, qty, maxStock, onDecrease, onIncrease, onAdd }) 
         onClick={goToDetail}
         className="aspect-[4/3] bg-neutral-100 rounded-lg mb-3 w-full"
       >
-        {/* acá podrías poner <img /> si después tenés URL */}
       </button>
 
       <h3 className="font-semibold text-sm mb-1 line-clamp-1">

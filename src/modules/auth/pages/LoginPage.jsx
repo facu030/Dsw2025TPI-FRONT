@@ -11,7 +11,6 @@ function LoginPage() {
       bg-neutral-100
       sm:items-center
     '>
-      {/* Formulario de login SIEMPRE */}
       <LoginForm />
     </div>
   );
