@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ProductCard from "../components/productCard";
+import ProductCard from "../components/ProductCard";
 import { getProductsClient } from "../services/productsClient";
 
 function ProductsGrid({ search = "" }) {
@@ -21,7 +21,7 @@ function ProductsGrid({ search = "" }) {
 
         const { items, total: totalFromApi } = await getProductsClient({
           page,
-          pageSize,        // 👈 usamos el estado, no constante fija
+          pageSize,      
           search,
           status: "enabled",
         });
@@ -37,7 +37,7 @@ function ProductsGrid({ search = "" }) {
     };
 
     fetchProducts();
-  }, [page, search, pageSize]); // 👈 si cambia pageSize, recarga
+  }, [page, search, pageSize]);
 
   // Cambiar cantidad elegida por producto
   const cambiarCantidad = (product, delta) => {
@@ -123,7 +123,7 @@ function ProductsGrid({ search = "" }) {
               product={product}
               qty={qty}
               maxStock={maxStock}
-              onDecrease={() => cambiarCantidad(product, -1)}  // 👈 arreglado
+              onDecrease={() => cambiarCantidad(product, -1)} 
               onIncrease={() => cambiarCantidad(product, 1)}
               onAdd={() => agregarCarrito(product)}
             />
@@ -155,11 +155,10 @@ function ProductsGrid({ search = "" }) {
             Siguiente
           </button>
 
-          {/* 👇 Selector de cantidad por página, igual que en admin */}
           <select
             value={pageSize}
             onChange={(e) => {
-              setPage(1);                     // cuando cambia, volvemos a página 1
+              setPage(1);                    
               setPageSize(Number(e.target.value));
             }}
             className="ml-3 text-xs border rounded-full px-2 py-1"
