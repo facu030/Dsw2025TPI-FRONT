@@ -28,3 +28,4 @@ export const getOrderById = async (id) => {
   const response = await instance.get(`/api/orders/${id}`);
   return { data: response.data, error: null };
 };
+
